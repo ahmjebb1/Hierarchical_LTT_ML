@@ -53,11 +53,13 @@ class LTTMLTrainApp:
             # Disable automatic logging
             mlflow.start_run = lambda: NOOPMLFlow()  # Mock the start_run function
             mlflow.log_param = lambda run_id, key, value: None  # Mock log_param
+            mlflow.log_params = lambda params: None
             mlflow.log_metric = lambda run_id, key=0, value=0, step=0: None  # Mock log_metric
             mlflow.log_artifact = lambda run_id, local_path, artifact_path=None: None  # Mock log_artifact
             mlflow.set_tracking_uri = lambda url: None
             mlflow.set_experiment = lambda name: None
             mlflow.active_run = lambda: NOOPMLFlowRun()
+            mlflow.set_tag = lambda tag, desc: None
 
         mlflow.set_tracking_uri(self._config.mlflow_uri)
         mlflow.set_experiment(self._config.mlflow_expname)
@@ -87,6 +89,9 @@ class LTTMLTrainApp:
         # this function again - it should return a mean of ~0 and std of ~0.5
 
     def mlflow_logs(self):
+        if self._config.use_mlflow == False:
+            return
+        
         run = mlflow.active_run().info.run_id
         log(0, "mlflow run: "+str(run))
         slurm_id = os.getenv('SLURM_JOB_ID','no_slurm_id')
