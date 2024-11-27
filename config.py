@@ -46,4 +46,4 @@ class LTTMLConfig:
         self.normalization_mean = config.get('normalization_mean')
         self.normalization_std = config.get('normalization_std')
 
-        self.use_mlflow = False
+        self.use_mlflow = config.get('use_mlflow')

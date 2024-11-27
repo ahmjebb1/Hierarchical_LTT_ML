@@ -137,7 +137,7 @@ class LTTMLSpectrogramDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.data[idx][0]
-        if self.config.get('model')=="transformer":
+        if self._config.model_type=="transformer":
             item=item.squeeze(0)
         label = self.data[idx][1]
 

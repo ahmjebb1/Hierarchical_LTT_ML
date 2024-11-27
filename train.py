@@ -49,6 +49,22 @@ class LTTMLTrainApp:
         # Move model to the device
         self._model.to(self._device)
 
+        if self._config.use_mlflow == False:
+            # Disable automatic logging
+            mlflow.start_run = lambda: NOOPMLFlow()  # Mock the start_run function
+            mlflow.log_param = lambda run_id, key, value: None  # Mock log_param
+            mlflow.log_metric = lambda run_id, key=0, value=0, step=0: None  # Mock log_metric
+            mlflow.log_artifact = lambda run_id, local_path, artifact_path=None: None  # Mock log_artifact
+            mlflow.set_tracking_uri = lambda url: None
+            mlflow.set_experiment = lambda name: None
+            mlflow.active_run = lambda: NOOPMLFlowRun()
+
+        mlflow.set_tracking_uri(self._config.mlflow_uri)
+        mlflow.set_experiment(self._config.mlflow_expname)
+
+        os.environ["MLFLOW_TRACKING_USERNAME"] = self._config.mlflow_user
+        os.environ["MLFLOW_TRACKING_PASSWORD"] = self._config.mlflow_pw        
+
     def load_data(self):
 
         # Load the whole dataset
@@ -70,64 +86,123 @@ class LTTMLTrainApp:
         # numbers are correct by enabling the normalisation in the transformation step and running
         # this function again - it should return a mean of ~0 and std of ~0.5
 
-        dataloader = self._train_loader
-        loss_fn = self._config.loss_fn
-        optimizer = self._config.optimizer
+    def mlflow_logs(self):
+        run = mlflow.active_run().info.run_id
+        log(0, "mlflow run: "+str(run))
+        slurm_id = os.getenv('SLURM_JOB_ID','no_slurm_id')
+        log(0, "SLURM id: "+str(slurm_id))
+        with open(slurm_id+".mlflow_run", 'w') as f:
+            f.write(run)
+
+        params = {
+            "epochs": self._config.epochs,
+            "learning_rate": self._config.learning_rate,
+            "batch_size": self._config.batch_size,
+            "min_examples_per_class": self._config.min_examples_per_class,
+            "max_examples_per_class": self._config.max_examples_per_class,
+            "conv1_size": self._config.conv1_size,
+            "conv2_size": self._config.conv2_size,
+            "hidden": self._config.hidden,
+            "dropout_rate": self._config.dropout_rate,
+            "loss_function": self._config.loss_fn.__class__.__name__,
+            #"metric_function": metric_fn.__class__.__name__,
+            "optimizer": "Adam",
+        }
+    
+        # Description of the MLFlow run:
+        mlflow.set_tag("mlflow.note.content", self._config.mlflow_description)
+
+        # update the run name with the prefix:
+        run_name = mlflow.active_run().data.tags.get('mlflow.runName')
+        new_run_name = self._config.mlflow_runname_prefix+ run_name
+        mlflow.set_tag('mlflow.runName', new_run_name)
+
+        # Tags:
+        mlflow.set_tag("model_type", self._config.model_type)
+
+        # Can just log the yaml config as params:
+        # mlflow.log_params(config)
+        
+        # And/or save the YAML config file as an artifact:
+        mlflow.log_artifact(sys.argv[1], "configs")
+                
+        # Log training parameters.
+        mlflow.log_params(params)
+
+    def forward(self, inputs, labels):
+
+        # create a 1-hot output vector representing the correct label
+        one_hot = torch.eye(self._config.num_outputs,dtype=torch.float,device=self._device)[labels]
+
+        # Zero the parameter gradients
+        self._config.optimizer.zero_grad()
+
+        # Forward pass
+        result = self._model(inputs)
+        outputs = result if self._config.model_type != "transformer" else result.logits
+
+        # transform model outputs
+        final_outputs = outputs
+
+        if self._config.use_softmax:
+            probs = F.softmax(outputs, dim=1)
+            final_outputs = probs
+
+        # get loss
+        loss = self._config.loss_fn(final_outputs, one_hot)
+        return loss, final_outputs
+    
+    # Validation and Test evaluation:
+    def evaluate(self, loader):
+        # Set model to evaluation mode
+        self._model.eval()
+
+        # Lists to store predictions and ground truth labels
+        predictions = []
+        true_labels = []
+
+        correct_predictions = 0
+        total_samples = 0
+        running_loss = 0.0
+
+        # Iterate over the validation set
+        for inputs, labels in loader:
+
+            # Forward pass
+            # Move inputs and labels to the device
+            inputs = inputs.to(self._device)
+            labels = labels.to(self._device)
+            loss, final_outputs = self.forward(inputs, labels)
+
+            running_loss += loss.item() * inputs.size(0)
+
+            # get predicted labels
+            _, preds = torch.max(final_outputs, dim=1)
+
+            # Append predictions and true labels to lists
+            predictions.extend(preds.cpu().numpy())
+            true_labels.extend(labels.cpu().numpy())
+
+            correct_predictions += (preds == labels).sum().item()
+            total_samples += labels.size(0)
+
+        # Compute stats
+        loss = running_loss / total_samples
+        accuracy = correct_predictions / total_samples
+
+        return accuracy, loss, true_labels, predictions
 
     def train(self):
+        
         # Training loop
         num_epochs = self._config.epochs
 
         best_validation_performance = -1.0
         print(f"epoch,train_loss,train_accuracy,val_loss,val_accuracy")
 
-        os.environ["MLFLOW_TRACKING_USERNAME"] = self._config.mlflow_user
-        os.environ["MLFLOW_TRACKING_PASSWORD"] = self._config.mlflow_pw
-        mlflow.set_tracking_uri(self._config.mlflow_uri)
-        mlflow.set_experiment(self._config.mlflow_expname)
-    
         with mlflow.start_run():
-            run = mlflow.active_run().info.run_id
-            log(0, "mlflow run: "+str(run))
-            slurm_id = os.getenv('SLURM_JOB_ID','no_slurm_id')
-            log(0, "SLURM id: "+str(slurm_id))
-            with open(slurm_id+".mlflow_run", 'w') as f:
-                f.write(run)
-
-            params = {
-                "epochs": self._config.epochs,
-                "learning_rate": self._config.learning_rate,
-                "batch_size": self._config.batch_size,
-                "min_examples_per_class": self._config.min_examples_per_class,
-                "max_examples_per_class": self._config.max_examples_per_class,
-                "conv1_size": self._config.conv1_size,
-                "conv2_size": self._config.conv2_size,
-                "hidden": self._config.hidden,
-                "dropout_rate": self._config.dropout_rate,
-                "loss_function": self._config.loss_fn.__class__.__name__,
-                #"metric_function": metric_fn.__class__.__name__,
-                "optimizer": "Adam",
-            }
-        
-            # Description of the MLFlow run:
-            mlflow.set_tag("mlflow.note.content", self._config.mlflow_description)
-
-            # update the run name with the prefix:
-            run_name = mlflow.active_run().data.tags.get('mlflow.runName')
-            new_run_name = self._config.mlflow_runname_prefix+ run_name
-            mlflow.set_tag('mlflow.runName', new_run_name)
-
-            # Tags:
-            mlflow.set_tag("model_type", self._config.model_type)
-
-            # Can just log the yaml config as params:
-            # mlflow.log_params(config)
-            
-            # And/or save the YAML config file as an artifact:
-            mlflow.log_artifact(sys.argv[1], "configs")
-                    
-            # Log training parameters.
-            mlflow.log_params(params)
+            # Log artifacts and parameters:
+            self.mlflow_logs()
 
             for epoch in range(num_epochs):
 
@@ -140,37 +215,12 @@ class LTTMLTrainApp:
 
                 for inputs, labels in self._train_loader:
 
-                    # shape = [batch, channels, length, bins], e.g. [3, 1, 300, 128]
-                    # AST expects [batch, channels, length, bins] but ends up with input of size: [3, 1, 300, 1, 128]
-                    # in AST old code [4, 1024, 128]! => must be adding channels in by itself somehow
-                    # if _model_type=="transformer": # removing channels seems to work:
-                    #     inputs = inputs.squeeze(1)
-
                     iteration = iteration + 1
-                    # Move inputs and labels to the device
 
+                    # Move inputs and labels to the device
                     inputs = inputs.to(self._device)
                     labels = labels.to(self._device)
-
-                    # create a 1-hot output vector representing the correct label
-                    one_hot = torch.eye(self._config.num_outputs,dtype=torch.float,device=self._device)[labels]
-
-                    # Zero the parameter gradients
-                    self._config.optimizer.zero_grad()
-
-                    # Forward pass
-                    result = self._model(inputs)
-                    outputs = result if self._config.model_type != "transformer" else result.logits
-
-                    # transform model outputs
-                    final_outputs = outputs
-
-                    if self._config.use_softmax:
-                        probs = F.softmax(outputs, dim=1)
-                        final_outputs = probs
-
-                    # get loss
-                    loss = self._config.loss_fn(final_outputs, one_hot)
+                    loss, final_outputs = self.forward(inputs, labels)
 
                     # Backward pass and optimize
                     loss.backward()
@@ -186,7 +236,7 @@ class LTTMLTrainApp:
                 epoch_loss = running_loss / total_samples
                 accuracy = correct_predictions / total_samples
 
-                val_accuracy, val_loss, _, _ = validate(self._config, self._model, self._val_loader, self._device, self._config.loss_fn)
+                val_accuracy, val_loss, _, _ = self.evaluate(self._val_loader)
                 self._config.scheduler.step(val_accuracy)
 
                 lr = self._config.scheduler.get_last_lr()
@@ -196,6 +246,7 @@ class LTTMLTrainApp:
                 mlflow.log_metric("Validation accuracy", f"{val_accuracy:4f}", step=(epoch))
 
                 print(f"{epoch},{epoch_loss:.4f},{accuracy:.4f},{val_loss:.4f},{val_accuracy:.4f}")
+
                 if val_accuracy > best_validation_performance:
                     log(0, f"New best validation performance at epoch {epoch+1} of {val_accuracy:.4f} - saving model.")
                     best_validation_performance = val_accuracy
@@ -204,9 +255,9 @@ class LTTMLTrainApp:
             log(0, "Training finished.")
 
     def test(self):
-        log(0, "Beginning final test.\nLoading best model...")
+        log(0, "Beginning final test. Loading best model for evaluation...")
         torch.load(self._config.best_model)
-        test_accuracy, test_loss,t_labels, p_labels = validate(self._config, self._model, self._test_loader, self._device, self._config.loss_fn)
+        test_accuracy, test_loss,t_labels, p_labels = self.evaluate(self._test_loader)
         log(0, f"Test-set accuracy: {test_accuracy:.4f} Loss: {test_loss:.4f}")
         log(0, multilabel_confusion_matrix(t_labels, p_labels))
         mlflow.log_metric("Test accuracy", f"{test_accuracy:4f}")
