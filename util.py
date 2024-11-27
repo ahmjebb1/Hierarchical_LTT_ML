@@ -1,7 +1,5 @@
 import sys
-import torch
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, random_split, SubsetRandomSampler
+from torch.utils.data import DataLoader, SubsetRandomSampler
 
 debug = False
 
