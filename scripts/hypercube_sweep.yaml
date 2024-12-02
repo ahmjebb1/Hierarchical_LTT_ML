@@ -1,0 +1,43 @@
+# Hardware
+use_mps: True # Metal shader, Macintosh
+use_cuda: True # CUDA - preferred
+# Dataset parameters
+data_directory: "dataset/GTc"
+data_presplit: True # dir/train, dir/test exist
+spectrogram_samples: 300 # 1024 -transformer, 300 - cnn
+spectrogram_bins: 128
+min_examples_per_class: 0
+max_examples_per_class: 1000
+augmentation: 0
+# GTc
+normalization_mean: 992.2945556640625
+normalization_std: 19194.873046875
+# LTT
+#normalization_mean: 0.7941427230834961
+#normalization_std: 2.8298227787017822
+normalize: True
+calculate_norm_stats: False
+max_classes: 0 # truncate the number of classes in the dataset to this
+# Model parameters
+model: "cnn" # "cnn" or "transformer"
+num_outputs: 453 # 527 if using ast, 40 for CNN
+use_softmax: False # False for transformer
+saved_model: "best_model" # model to load
+# Training parameters
+epochs: 32
+# Other parameters
+debug: False # not implemented
+use_mlflow: True
+mlflow_user: "admin"
+mlflow_pw: "admin1"
+mlflow_uri: "http://cmi-birdcall.shef.ac.uk:5000"
+best_model: best_model
+mlflow_expname: "hypercube [tiny]"
+mlflow_description: "tiny hypercube sweep across all hyperparameters"
+#mlflow_runname_prefix: ""
+#conv1_size: 24
+#conv2_size: 32
+#hidden: 384
+#batch_size: 4
+#learning_rate: 0.000046
+#dropout_rate: 0.5
