@@ -10,13 +10,19 @@
 #SBATCH --qos=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:30:00 	# 30 minutes
-#SBATCH -e slurm-%j.err.txt
-#SBATCH -o slurm-%j.out.txt
+#SBATCH -e logs/slurm-%j.err.txt
+#SBATCH -o logs/slurm-%j.out.txt
 
 # Check if the first parameter is provided (the YAML config)
 if [ -z "$1" ]; then
   echo "Error: No parameter provided."
   echo "Usage: $0 <parameter1>"
+  exit 1
+fi
+
+# Check if the YAML exists
+if [ ! -e "$1" ]; then
+  echo "Error: provided configuration file does not exist."
   exit 1
 fi
 

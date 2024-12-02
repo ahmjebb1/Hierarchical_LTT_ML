@@ -6,9 +6,9 @@
 #
 
 #SBATCH --mem=60G               # max 82GB
-##SBATCH --partition=gpu
-##SBATCH --qos=gpu
-##SBATCH --gres=gpu:1
+#SBATCH --partition=gpu
+#SBATCH --qos=gpu
+#SBATCH --gres=gpu:1
 #SBATCH --time=00:30:00         # 30 minutes
 #SBATCH -e slurm-%j.err.txt
 #SBATCH -o slurm-%j.out.txt

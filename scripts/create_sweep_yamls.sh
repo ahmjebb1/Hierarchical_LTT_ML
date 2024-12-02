@@ -10,9 +10,9 @@ mlflow_credentials_file=credentials.yaml
 job_script=birdcall_hpc.sh
 template_config=hypercube_sweep.yaml # Edit the template file to configure common parameters!
 
-MLFLOW_TRACKING_URI=$(yq e .mlflow_uri $mlflow_credentials_file)
-MLFLOW_TRACKING_USERNAME=$(yq e .mlflow_user $mlflow_credentials_file)
-MLFLOW_TRACKING_PASSWORD=$(yq e .mlflow_pw $mlflow_credentials_file)
+export MLFLOW_TRACKING_URI=$(yq e .mlflow_uri $mlflow_credentials_file)
+export MLFLOW_TRACKING_USERNAME=$(yq e .mlflow_user $mlflow_credentials_file)
+export MLFLOW_TRACKING_PASSWORD=$(yq e .mlflow_pw $mlflow_credentials_file)
 
 # Set mlflow credentials in the configuration:
 yq e ".mlflow_user=\"$MLFLOW_TRACKING_USERNAME\"" -i $template_config
