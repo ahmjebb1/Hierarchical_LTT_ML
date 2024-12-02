@@ -94,6 +94,7 @@ class LTTMLTrainApp:
             return
         
         run = mlflow.active_run().info.run_id
+        self._run_id = run
         log(0, "mlflow run: "+str(run))
         slurm_id = os.getenv('SLURM_JOB_ID','no_slurm_id')
         log(0, "SLURM id: "+str(slurm_id))
@@ -198,6 +199,13 @@ class LTTMLTrainApp:
 
         return accuracy, loss, true_labels, predictions
 
+    def train_and_test(self):
+        with mlflow.start_run():
+            # Log artifacts and parameters:
+            self.mlflow_logs()
+            self.train()
+            self.test()
+
     def train(self):
         
         # Training loop
@@ -206,61 +214,61 @@ class LTTMLTrainApp:
         best_validation_performance = -1.0
         print(f"epoch,train_loss,train_accuracy,val_loss,val_accuracy")
 
-        with mlflow.start_run():
-            # Log artifacts and parameters:
-            self.mlflow_logs()
+        # with mlflow.start_run():
+        #     # Log artifacts and parameters:
+        #     self.mlflow_logs()
 
-            for epoch in range(num_epochs):
+        for epoch in range(num_epochs):
 
-                self._model.train()  # Set the model to train mode
+            self._model.train()  # Set the model to train mode
 
-                running_loss = 0.0
-                correct_predictions = 0
-                total_samples = 0
-                iteration = 0
+            running_loss = 0.0
+            correct_predictions = 0
+            total_samples = 0
+            iteration = 0
 
-                for inputs, labels in self._train_loader:
+            for inputs, labels in self._train_loader:
 
-                    iteration = iteration + 1
+                iteration = iteration + 1
 
-                    # Move inputs and labels to the device
-                    inputs = inputs.to(self._device)
-                    labels = labels.to(self._device)
-                    loss, final_outputs = self.forward(inputs, labels)
+                # Move inputs and labels to the device
+                inputs = inputs.to(self._device)
+                labels = labels.to(self._device)
+                loss, final_outputs = self.forward(inputs, labels)
 
-                    # Backward pass and optimize
-                    loss.backward()
-                    self._config.optimizer.step()
+                # Backward pass and optimize
+                loss.backward()
+                self._config.optimizer.step()
 
-                    # Compute statistics
-                    running_loss += loss.item() * inputs.size(0)
-                    _, predicted = torch.max(final_outputs, 1)
-                    correct_predictions += (predicted == labels).sum().item()
-                    total_samples += labels.size(0)
+                # Compute statistics
+                running_loss += loss.item() * inputs.size(0)
+                _, predicted = torch.max(final_outputs, 1)
+                correct_predictions += (predicted == labels).sum().item()
+                total_samples += labels.size(0)
 
-                # Print statistics for the epoch
-                epoch_loss = running_loss / total_samples
-                accuracy = correct_predictions / total_samples
+            # Print statistics for the epoch
+            epoch_loss = running_loss / total_samples
+            accuracy = correct_predictions / total_samples
 
-                val_accuracy, val_loss, _, _ = self.evaluate(self._val_loader)
-                self._config.scheduler.step(val_accuracy)
+            val_accuracy, val_loss, _, _ = self.evaluate(self._val_loader)
+            self._config.scheduler.step(val_accuracy)
 
-                lr = self._config.scheduler.get_last_lr()
+            lr = self._config.scheduler.get_last_lr()
 
-                mlflow.log_metric("Loss", f"{epoch_loss:4f}", step=(epoch))
-                mlflow.log_metric("Accuracy", f"{accuracy:4f}", step=(epoch))
-                mlflow.log_metric("Validation accuracy", f"{val_accuracy:4f}", step=(epoch))
+            mlflow.log_metric("Loss", f"{epoch_loss:4f}", step=(epoch))
+            mlflow.log_metric("Accuracy", f"{accuracy:4f}", step=(epoch))
+            mlflow.log_metric("Validation accuracy", f"{val_accuracy:4f}", step=(epoch))
 
-                print(f"{epoch},{epoch_loss:.4f},{accuracy:.4f},{val_loss:.4f},{val_accuracy:.4f}")
+            print(f"{epoch},{epoch_loss:.4f},{accuracy:.4f},{val_loss:.4f},{val_accuracy:.4f}")
 
-                if val_accuracy > best_validation_performance:
-                    log(0, f"New best validation performance at epoch {epoch+1} of {val_accuracy:.4f} - saving model.")
-                    best_validation_performance = val_accuracy
-                    # In-memory copy of the best-so-far model:
-                    self._best_model = copy.deepcopy(self._model)
-                    if self._config.save_best: torch.save(self._model.state_dict(), self._config.best_model)
+            if val_accuracy > best_validation_performance:
+                log(0, f"New best validation performance at epoch {epoch+1} of {val_accuracy:.4f} - saving model.")
+                best_validation_performance = val_accuracy
+                # In-memory copy of the best-so-far model:
+                self._best_model = copy.deepcopy(self._model)
+                if self._config.save_best: torch.save(self._model.state_dict(), self._config.best_model)
 
-            log(0, "Training finished.")
+        log(0, "Training finished.")
 
     def test(self):
         log(0, "Beginning final test. Loading best model for evaluation...")
@@ -277,8 +285,8 @@ def main():
     if len(sys.argv) > 1:
         app = LTTMLTrainApp(sys.argv[1])
         app.load_data()
-        app.train()
-        app.test()
+        app.train_and_test()
+
     else:
         print("Usage: cnn_train.py <config.yaml>")
         exit(0)
