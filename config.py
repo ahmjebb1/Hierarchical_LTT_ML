@@ -39,6 +39,7 @@ class LTTMLConfig:
         self.mlflow_runname_prefix = config.get('mlflow_runname_prefix')
 
         self.best_model = config.get('best_model')
+        self.save_best = config.get('save_best')
         self.use_softmax = config.get('use_softmax')
 
         self.max_classes = config.get('max_classes')

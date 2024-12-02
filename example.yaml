@@ -2,7 +2,7 @@
 use_mps: True # Metal shader, Macintosh
 use_cuda: True # CUDA - preferred
 # Dataset parameters
-data_directory: "dataset/LTT"
+data_directory: "dataset/GTr"
 data_presplit: True # dir/train, dir/test exist
 spectrogram_samples: 300 # 1024 -transformer, 300 - cnn
 spectrogram_bins: 128
@@ -37,3 +37,5 @@ mlflow_expname: "GT REDUCED STAT VAL"
 mlflow_description: "great tits reduced dataset 50 replicates"
 mlflow_runname_prefix: ""
 best_model: best_model
+save_best: False
+

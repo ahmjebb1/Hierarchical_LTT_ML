@@ -17,6 +17,7 @@ from config import LTTMLConfig
 
 import mlflow
 import os
+import copy
 
 class LTTMLTrainApp:
     def __init__(self, config_file):
@@ -255,13 +256,17 @@ class LTTMLTrainApp:
                 if val_accuracy > best_validation_performance:
                     log(0, f"New best validation performance at epoch {epoch+1} of {val_accuracy:.4f} - saving model.")
                     best_validation_performance = val_accuracy
-                    torch.save(self._model.state_dict(), self._config.best_model)
+                    # In-memory copy of the best-so-far model:
+                    self._best_model = copy.deepcopy(self._model)
+                    if self._config.save_best: torch.save(self._model.state_dict(), self._config.best_model)
 
             log(0, "Training finished.")
 
     def test(self):
         log(0, "Beginning final test. Loading best model for evaluation...")
-        torch.load(self._config.best_model)
+        # torch.load(self._config.best_model)
+        # Retrieve the best-of-run model:
+        self._model = self._best_model
         test_accuracy, test_loss,t_labels, p_labels = self.evaluate(self._test_loader)
         log(0, f"Test-set accuracy: {test_accuracy:.4f} Loss: {test_loss:.4f}")
         log(0, multilabel_confusion_matrix(t_labels, p_labels))
