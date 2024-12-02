@@ -29,7 +29,7 @@ fi
 # load modules and environment
 module load CUDA
 module load Python/3.11.3
-source ../venv/bin/activate
+source venv/bin/activate
 
 
 export MLFLOW_TRACKING_URI=$(~/bin/yq e .mlflow_uri credentials.yaml)
@@ -42,6 +42,8 @@ export MLFLOW_TRACKING_PASSWORD=$(~/bin/yq e .mlflow_pw credentials.yaml)
 
 best_model_filename=$(~/bin/yq -e '.best_model' $1)
 touch $best_model_filename
+
+which python
 
 # run the training script
 python ../train.py "$1"
