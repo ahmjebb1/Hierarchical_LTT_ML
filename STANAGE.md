@@ -10,8 +10,8 @@ module load Python/3.11.3-GCCcore-12.3.0
 source venv/bin/activate
 ```
 #### Creating
+This assumes that [~/fastdata is mapped to the parscratch share](https://docs.hpc.shef.ac.uk/en/latest/hpc/filestore.html#fastdata-areas)
 ```
-# Assuming ~/fastdata is mapped to the fastdata drive:
 mkdir ~/fastdata/ltt-ml-venv
 ln -s ~/fastdata/ltt-ml-venv venv
 cd venv
