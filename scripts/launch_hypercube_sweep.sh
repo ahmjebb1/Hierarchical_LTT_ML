@@ -14,5 +14,7 @@
 #SBATCH -e logs/slurm-%j.err.txt
 #SBATCH -o logs/slurm-%j.out.txt
 
+echo "PATH IS: $PATH"
+
 ./birdcall_hpc.sh temp/$((SLURM_ARRAY_TASK_ID)).yaml
 

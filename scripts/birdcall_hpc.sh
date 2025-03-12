@@ -28,7 +28,19 @@ fi
 
 # load modules and environment
 module load CUDA
-module load Python/3.11.3
+#module load Python/3.11.3
+module load GCCcore/12.3.0
+module load ncurses/6.4-GCCcore-12.3.0
+module load XZ/5.4.2-GCCcore-12.3.0
+module load zlib/1.2.13-GCCcore-12.3.0
+module load libreadline/8.2-GCCcore-12.3.0
+module load libffi/3.4.4-GCCcore-12.3.0
+module load binutils/2.40-GCCcore-12.3.0
+module load Tcl/8.6.13-GCCcore-12.3.0
+module load OpenSSL/1.1
+module load bzip2/1.0.8-GCCcore-12.3.0
+module load SQLite/3.42.0-GCCcore-12.3.0
+module load Python/3.11.3-GCCcore-12.3.0
 source venv/bin/activate
 
 
@@ -43,6 +55,7 @@ export MLFLOW_TRACKING_PASSWORD=$(~/bin/yq e .mlflow_pw credentials.yaml)
 best_model_filename=$(~/bin/yq -e '.best_model' $1)
 touch $best_model_filename
 
+echo -n "Which Python: "
 which python
 
 # run the training script
