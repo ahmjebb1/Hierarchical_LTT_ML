@@ -5,11 +5,14 @@ import random
 # List of the class sizes of each of the LTT classes
 class_sizes=[9, 12, 8, 16, 30, 4, 43, 48, 32, 8, 10, 16, 30, 10, 29, 29, 10, 46, 34, 22, 103, 18, 6, 19, 20, 11, 23, 25, 1, 38, 6, 42, 10, 43, 9, 27, 12, 2, 32]
 
+# Post-March 2025 list of the class sizes:
+class_sizes=[62, 122, 7, 75, 60, 57, 41, 8, 67, 1, 123, 70, 2, 55, 134, 17, 52, 117, 29, 298, 75, 68, 89, 68, 63, 8, 62, 146, 16, 51, 56, 40, 56, 12, 3, 85, 4, 62, 45, 170]
+
 # Source of the (larger) data set
-source_dir="data_classes/0"
+source_dir="/users/li1ajs/fastdata/WWc"
 
 # Where to put the smaller data set
-dest_dir="gt_data_ltt_shape"
+dest_dir="/users/li1ajs/fastdata/WWr"
 
 source_class_sizes=[]
 
