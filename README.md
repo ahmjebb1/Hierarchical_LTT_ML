@@ -2,7 +2,7 @@
 Long-tailed Tit Call Machine Learning Project
 
 # data
-Raw LTT data is processed using the updated [Lotti App](https://github.com/bubblecontrol/lotti_app). Raw GT data from the [Wytham Wood dataset](https://nilomr.github.io/great-tit-hits/, hosted at OSF: https://osf.io/n8ac9/files/osfstorage. This data downloads as four partial zips, you have to concatenate these together and then "fix" them if you are using standard tools. E.g.:
+Raw LTT data is processed using the updated [Lotti App](https://github.com/bubblecontrol/lotti_app). Raw GT data from the [Wytham Wood dataset](https://nilomr.github.io/great-tit-hits/), hosted at OSF: https://osf.io/n8ac9/files/osfstorage. This data downloads as four partial zips, you have to concatenate these together and then "fix" them if you are using standard tools. E.g.:
 ```
 cat song_files.zip.part1 song_files.zip.part2 song-files.zip.part3 song-files.zip.part4 >> song-files.broken.zip
 zip -FF song-files.broken.zip --out song-files.zip
