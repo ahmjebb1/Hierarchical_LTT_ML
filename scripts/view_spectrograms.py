@@ -11,9 +11,15 @@ def load_arrays_from_pickle(filename):
 
 # Function to display the array as a colormesh
 def display_array_as_colormesh(arr):
-    plt.pcolormesh(arr, cmap='viridis')
-    plt.colorbar()
-    plt.title(f"Array {current_index + 1} of {len(arrays)}")
+    plt.pcolormesh(arr)
+    plt.ylabel('Frequency bin')
+    plt.xlabel('Sample')
+    plt.title(f'Spectrogram {current_index + 1} of {len(arrays)}')
+    plt.colorbar(label='Intensity')
+
+#    plt.pcolormesh(arr, cmap='viridis')
+#    plt.colorbar()
+    #plt.title(f"Array {current_index + 1} of {len(arrays)}")
     plt.draw()
 
 # Key event function to navigate through arrays
