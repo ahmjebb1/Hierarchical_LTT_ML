@@ -66,4 +66,4 @@ for bird_id in tqdm(bird_ids, unit='bird'):
         with open(out_file, 'wb') as f:
             pickle.dump(spects_temp, f)
         
-print(f"Complete. Procesed {count} WAV files with {failcount} failures ({count/failcount}%) (note that there are ~109k rows in the CSV but only ~35k WAV files.)")
+print(f"Complete. Processed {count} WAV files with {failcount} failures.")
