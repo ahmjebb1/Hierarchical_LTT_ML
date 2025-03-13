@@ -5,3 +5,4 @@ best_model
 dataset/GTc
 credentials.yaml
 runs
+venv-hpc
