@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import tqdm
+from tqdm import tqdm
 import pickle
 import os
 
@@ -26,30 +26,34 @@ def get_spectrogram(filename):
 df = pd.read_csv('great-tit-hits.csv')
 
 count = 0
+failcount = 0
 data = {}
 bird_ids = set()
 
-for index, row in tqdm(df.iterrows(), total=len(df)):
-    fname = "WAV/"+row['filename'] + ".wav"
+for index, row in tqdm(df.iterrows(), total=len(df), unit='row'):
+    fname = "song-files/WAV/"+row['filename'] + ".wav"
     bird_id = row['ID']
     bird_ids.add(bird_id)
     count += 1
 
-for bird_id in tqdm(bird_ids):
+for bird_id in tqdm(bird_ids, unit='bird'):
     filtered = df[df['ID'] == bird_id]
     classes = set(filtered['class_id'])
 
     for class_id in classes:
         filtered_2 = filtered[filtered['class_id'] == class_id]
         spects_temp = []
-        for index, row in tqdm(filtered_2.iterrows(), total=len(filtered_2)):
-            fname = "WAV/"+row['filename'] + ".wav"
-            bird_id_csv = row['ID']
-            if bird_id != bird_id_csv: print("Error: unmatched bird_id")
+        for index, row in filtered_2.iterrows():
+            fname = "song-files/WAV/"+row['filename'] + ".wav"
+            if os.path.exists(fname):
+               bird_id_csv = row['ID']
+               if bird_id != bird_id_csv: print("Error: unmatched bird_id")
 
-            frequencies, times, spectrogram = get_spectrogram(fname)
+               frequencies, times, spectrogram = get_spectrogram(fname)
 
-            spects_temp.append(spectrogram)
+               spects_temp.append(spectrogram)
+            else:
+               failcount += 1
 
         # Save the list of spectrograms for this bird:
         class_num = class_id.split('_')[1]
@@ -61,4 +65,5 @@ for bird_id in tqdm(bird_ids):
         
         with open(out_file, 'wb') as f:
             pickle.dump(spects_temp, f)
-
+        
+print(f"Complete. Procesed {count} WAV files with {failcount} failures ({count/failcount}%) (note that there are ~109k rows in the CSV but only ~35k WAV files.)")
