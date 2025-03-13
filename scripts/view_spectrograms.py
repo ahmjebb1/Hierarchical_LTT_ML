@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import sys
 
 # Function to load the list of 2D NumPy arrays from a pickle file
 def load_arrays_from_pickle(filename):
@@ -29,7 +30,15 @@ def on_key(event):
     plt.show()
 
 # Initialize
-filename = '../dataset/LTT/B_NL.pkl'  # Replace with your pickle file
+
+# Check if there is exactly one command line argument (excluding the script name)
+if len(sys.argv) == 2:
+    filename = sys.argv[1]
+else:
+    print("This script requires exactly one command line argument.")
+    sys.exit()
+
+#filename = '../dataset/LTT/B_NL.pkl'  # Replace with your pickle file
 arrays = load_arrays_from_pickle(filename)
 
 # Start with the first array
