@@ -41,7 +41,7 @@ module load OpenSSL/1.1
 module load bzip2/1.0.8-GCCcore-12.3.0
 module load SQLite/3.42.0-GCCcore-12.3.0
 module load Python/3.11.3-GCCcore-12.3.0
-source venv/bin/activate
+source venv-hpc/bin/activate
 
 
 export MLFLOW_TRACKING_URI=$(~/bin/yq e .mlflow_uri credentials.yaml)
@@ -59,12 +59,12 @@ echo -n "Which Python: "
 which python
 
 # run the training script
-python ../train.py "$1"
+python train.py "$1"
 
 rm $best_model_filename
 
 # send outputs to mlflow
-mlflow_id=$(cat $SLURM_JOB_ID.mlflow_run)
+#mlflow_id=$(cat $SLURM_JOB_ID.mlflow_run)
 #mlflow artifacts log-artifact --local-file slurm-$SLURM_JOB_ID.err.txt --run-id $mlflow_id
 #mlflow artifacts log-artifact --local-file slurm-$SLURM_JOB_ID.out.txt --run-id $mlflow_id
 #mlflow artifacts log-artifact --local-file $best_model_filename        --run-id $mlflow_id
