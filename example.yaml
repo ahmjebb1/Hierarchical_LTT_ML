@@ -13,6 +13,7 @@ normalization_mean: 2.392993450164795
 normalization_std: 4.967668056488037
 normalize: True
 calculate_norm_stats: False
+min_classes: 0 # stop if the number loaded is fewer than this
 max_classes: 0 # truncate the number of classes in the dataset to this
 # Model parameters
 model: "cnn" # "cnn" or "transformer"

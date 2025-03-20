@@ -42,6 +42,7 @@ class LTTMLConfig:
         self.save_best = config.get('save_best')
         self.use_softmax = config.get('use_softmax')
 
+        self.min_classes = config.get('min_classes')
         self.max_classes = config.get('max_classes')
 
         self.normalization_mean = config.get('normalization_mean')

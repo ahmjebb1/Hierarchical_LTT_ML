@@ -1,6 +1,7 @@
 import os
 import pickle
 import random
+import sys
 
 import numpy as np
 
@@ -66,7 +67,14 @@ class LTTMLSpectrogramDataset(Dataset):
         if self._config.max_classes > 0:
             self.truncate_unaugmented(self._config.max_classes)
 
+        loaded_classes = set([ x[1] for x in self.unaugmented_data ])
+        log(0, f"Classes in use: {len(loaded_classes)}")
             
+        if self._config.min_classes > 0:
+            if len(loaded_classes) < self._config.min_classes:
+                log(2, f"Too few classes to proceed! Minimum: {self._config.min_classes}")
+                sys.exit(1)
+
         # Set the transform (it's not being used now)
         self.transform = None
 
