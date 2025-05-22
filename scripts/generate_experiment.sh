@@ -1,6 +1,6 @@
 #!/bin/bash
-dir=exp-`date +"%Y%m%d%H%M%S"`
-
+default_dir=exp-`date +"%Y%m%d%H%M%S"`
+dir="${1:-$default_dir}"
 echo "Generating experiment folder '$dir' ... "
 rm -rf $dir
 mkdir $dir
@@ -20,5 +20,7 @@ cp -v scripts/create_sweep_yamls.sh $dir
 cp -v scripts/latin_hypercube.py $dir
 cp -v scripts/launch_hypercube_sweep.sh $dir
 cp -v scripts/hypercube_sweep.yaml $dir
+cp -v scripts/launch_jobs.sh $dir
+cp -v scripts/aggregate_data.sh $dir
 cp -v --no-dereference venv-hpc $dir/venv-hpc
 echo "Complete."
