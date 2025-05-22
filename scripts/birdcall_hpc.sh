@@ -5,13 +5,21 @@
 # Note that this script relies on "yq" (YAML command line tool) being in the path.
 #
 
-#SBATCH --mem=60G		# max 82GB
-#SBATCH --partition=gpu-h100
+#SBATCH --mem=80G		# max 82GB
+#SBATCH --partition=gpu
 #SBATCH --qos=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:30:00 	# 30 minutes
-#SBATCH -e logs/slurm-%j.err.txt
-#SBATCH -o logs/slurm-%j.out.txt
+#SBATCH --array=0-49              # Array range 0-9, equivalent to 10 runs  
+
+##SBATCH -e "logs/%x.slurm-%j_%A_%a.err.txt"
+##SBATCH -o "logs/%x.slurm-%j_%A_%a.out.txt"
+
+#SBATCH -e "logs/%x.%a.err.txt"
+#SBATCH -o "logs/%x.%a.out.txt"
+
+##SBATCH --job-name=$expname
+
 
 # Check if the first parameter is provided (the YAML config)
 if [ -z "$1" ]; then
@@ -25,6 +33,8 @@ if [ ! -e "$1" ]; then
   echo "Error: provided configuration file does not exist."
   exit 1
 fi
+
+expname=$(~/bin/yq e .expname $1)
 
 # load modules and environment
 module load CUDA
