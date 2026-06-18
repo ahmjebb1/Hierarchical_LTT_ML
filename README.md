@@ -1,5 +1,5 @@
-# ltt-ml
-Long-tailed Tit Call Machine Learning Project
+# Hierarchical_LTT_ML
+This is a cloned and modified version of ltt-ml for the purposes of looking into hierarchical mapping across different social levels within the rivelin valley long-tailed tit population.
 
 # data
 Raw LTT data is processed using the updated [Lotti App](https://github.com/bubblecontrol/lotti_app). Raw GT data from the [Wytham Wood dataset](https://nilomr.github.io/great-tit-hits/), hosted at OSF: https://osf.io/n8ac9/files/osfstorage. This data downloads as four partial zips, you have to concatenate these together and then "fix" them if you are using standard tools. E.g.:
