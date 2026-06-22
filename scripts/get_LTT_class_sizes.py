@@ -1,6 +1,7 @@
 import pickle
 import os
 
+# need to modify this path
 directory = '/users/li1ajs/fastdata/LTT'
 # to check it worked:
 #directory = '/users/li1ajs/fastdata/WWr'

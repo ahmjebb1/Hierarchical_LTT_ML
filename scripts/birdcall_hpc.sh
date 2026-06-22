@@ -5,11 +5,16 @@
 # Note that this script relies on "yq" (YAML command line tool) being in the path.
 #
 
-#SBATCH --mem=80G		# max 82GB
+# memory request (max 82GB)
+#SBATCH --mem=80G		
 #SBATCH --partition=gpu
 #SBATCH --qos=gpu
-#SBATCH --gres=gpu:1
-#SBATCH --time=00:30:00 	# 30 minutes
+# 1 GPU requested
+#SBATCH --gres=gpu:1 
+# 30 minute max runtime
+#SBATCH --time=00:30:00 	
+
+# Means this script runs 50 separate jobs automatically (a key HPC parallelisation mechanism)
 #SBATCH --array=0-49              # Array range 0-9, equivalent to 10 runs  
 
 ##SBATCH -e "logs/%x.slurm-%j_%A_%a.err.txt"
@@ -34,6 +39,7 @@ if [ ! -e "$1" ]; then
   exit 1
 fi
 
+# extract experiment name
 expname=$(~/bin/yq e .expname $1)
 
 # load modules and environment
@@ -53,7 +59,7 @@ module load SQLite/3.42.0-GCCcore-12.3.0
 module load Python/3.11.3-GCCcore-12.3.0
 source venv-hpc/bin/activate
 
-
+# Uses MLFLOW for experiment logging
 export MLFLOW_TRACKING_URI=$(~/bin/yq e .mlflow_uri credentials.yaml)
 export MLFLOW_TRACKING_USERNAME=$(~/bin/yq e .mlflow_user credentials.yaml)
 export MLFLOW_TRACKING_PASSWORD=$(~/bin/yq e .mlflow_pw credentials.yaml)
@@ -61,7 +67,7 @@ export MLFLOW_TRACKING_PASSWORD=$(~/bin/yq e .mlflow_pw credentials.yaml)
 # ensure output artifacts exist:
 #touch slurm-$SLURM_JOB_ID.err.txt
 #touch slurm-$SLURM_JOB_ID.out.txt
-
+#extract the name of the best model
 best_model_filename=$(~/bin/yq -e '.best_model' $1)
 touch $best_model_filename
 

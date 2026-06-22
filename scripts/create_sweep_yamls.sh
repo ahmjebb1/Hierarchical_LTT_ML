@@ -8,6 +8,7 @@
 
 mlflow_credentials_file=credentials.yaml
 job_script=birdcall_hpc.sh
+# calls in basic parameters and setup
 template_config=hypercube_sweep.yaml # Edit the template file to configure common parameters!
 
 export MLFLOW_TRACKING_URI=$(yq e .mlflow_uri $mlflow_credentials_file)
@@ -29,8 +30,11 @@ counter=0
 for x in part_yaml/* ; do
 
   #echo $x
+  # for each parameter file copy template
   cp $template_config temp/$counter.yaml
+  # use base configuration and then override parameters appended
   cat $x >> temp/$counter.yaml
+  # HPC job submission line (currently disabled)
   # sbatch --export ALL,PATH=$PATH $job_script temp/$counter.yaml
   ((counter++)) 
 
