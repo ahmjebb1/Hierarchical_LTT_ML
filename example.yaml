@@ -2,7 +2,7 @@
 use_mps: True # Metal shader, Macintosh
 use_cuda: True # CUDA - preferred
 # Dataset parameters
-data_directory: "/users/li1ajs/fastdata/LTT"
+data_directory: "C:/Users/bi1ahj/Desktop/Data Analysis/GitHub/Hierarchical_ltt_ml/dataset"
 data_presplit: True # dir/train, dir/test exist
 spectrogram_samples: 300 # 1024 -transformer, 300 - cnn
 spectrogram_bins: 128

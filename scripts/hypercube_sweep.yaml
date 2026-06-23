@@ -2,19 +2,16 @@
 use_mps: True # Metal shader, Macintosh
 use_cuda: True # CUDA - preferred
 # Dataset parameters
-data_directory: "dataset/GTc"
+data_directory: "dataset"
 data_presplit: True # dir/train, dir/test exist
 spectrogram_samples: 300 # 1024 -transformer, 300 - cnn
 spectrogram_bins: 128
 min_examples_per_class: 0
 max_examples_per_class: 1000
 augmentation: 0
-# GTc
-normalization_mean: 992.2945556640625
-normalization_std: 19194.873046875
 # LTT
-#normalization_mean: 0.7941427230834961
-#normalization_std: 2.8298227787017822
+normalization_mean: 0.7941427230834961
+normalization_std: 2.8298227787017822
 normalize: True
 calculate_norm_stats: False
 max_classes: 0 # truncate the number of classes in the dataset to this
@@ -32,8 +29,8 @@ mlflow_user: "admin"
 mlflow_pw: "admin1"
 mlflow_uri: "http://cmi-birdcall.shef.ac.uk:5000"
 best_model: best_model
-mlflow_expname: "hypercube [tiny]"
-mlflow_description: "tiny hypercube sweep across all hyperparameters"
+mlflow_expname: "individuality [full dataset]"
+mlflow_description: "test of individual classification using all individuals with 20 churrs min from an updated dataset"
 #mlflow_runname_prefix: ""
 #conv1_size: 24
 #conv2_size: 32
